@@ -82,6 +82,6 @@ Outputs are saved to the `output/` folder. Metadata is printed to the terminal.
 
 ## Author
 
-**Kavyaa** — B.E AI & Data Science  
+**Kavyaa** — final year B.E AI & Data Science  
 Building at the intersection of computer vision and digital safety.  
 [GitHub](https://github.com/Kavyaa156)
