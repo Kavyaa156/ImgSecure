@@ -7,10 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 import torch
-!pip install validators matplotlib
 
 warnings.filterwarnings('ignore')
-%matplotlib inline
 
 device = torch.device(
     "cuda") if torch.cuda.is_available() else torch.device("cpu")
