@@ -41,5 +41,6 @@ for uri, result in zip(uris, results):
     img = Image.open(requests.get(uri, stream=True).raw)
     img.thumbnail((256, 256), Image.LANCZOS)
     plt.imshow(img)
-    plt.show()
+    plt.savefig(f"prediction_{uri.split('/')[-1]}")
+    plt.close()
     print(result)
