@@ -2,3 +2,7 @@
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+# Ignore temporary Matplotlib prediction outputs
+prediction_*.jpg
+prediction_*.png
+test_images/
