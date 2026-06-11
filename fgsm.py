@@ -1,4 +1,5 @@
 # -----SETUP ZONE-----#
+import os
 import requests
 import matplotlib.pyplot as plt
 from numpy import asarray
@@ -7,6 +8,9 @@ from PIL import Image
 import torch
 import torch.nn as nn
 import skimage as sk
+
+output_dir = "result"
+os.makedirs(output_dir, exist_ok=True)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'Using {device} for inference..')
@@ -101,4 +105,9 @@ for epsilon in epsilons:
     plt.title("Perturbed Image")
 
     plt.suptitle(f"FGSM Attack (Epsilon = {epsilon})")
-    plt.show()
+
+    # save results to folder
+    file_path = os.path.join(output_dir, f"fgsm_eps_{epsilon}.png")
+    plt.savefig(file_path, bbox_inches='tight', dpi=300)
+
+    plt.close()
