@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import skimage as sk
 
-device = torch.device("cuda" if torch.device.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'Using {device} for inference..')
 
 resnet50 = torch.hub.load(
