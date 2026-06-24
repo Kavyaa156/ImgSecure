@@ -60,3 +60,33 @@ for step in range(num_steps):
 
         copy.copy_(image + displacement)
         copy.clamp_(0, 1)
+
+with torch.no_grad():
+    # 1. Get the model's new prediction on the perturbed image
+    final_norm = (copy - mean) / std
+    outputs = resnet50(final_norm)
+    _, predicted_idx = torch.max(outputs, 1)
+
+    print(f"\nTarget Class Index (True Label): {true_label.item()}")
+    print(f"Model's Predicted Class Index After PGD: {predicted_idx.item()}")
+
+    if true_label.item() == predicted_idx.item():
+        print("❌ The attack failed to fool the model. Try increasing epsilon or num_steps.")
+    else:
+        print("🎉 Success! The model was fooled by the adversarial image.")
+
+    # 2. Convert tensors back to PIL Images to save them
+    # Remove batch dimension and move to CPU/NumPy
+    adv_np = copy.squeeze(0).cpu().permute(1, 2, 0).numpy()
+    adv_np = (adv_np * 255).astype(np.uint8)
+    adv_img = Image.fromarray(adv_np)
+    adv_img.save("adversarial_image.png")
+
+    # 3. Amplify and save the noise pattern itself so we can see it
+    noise_np = (displacement.squeeze(0).cpu().permute(
+        1, 2, 0).numpy() + epsilon) / (2 * epsilon)
+    noise_np = (noise_np * 255).astype(np.uint8)
+    noise_img = Image.fromarray(noise_np)
+    noise_img.save("adversarial_noise.png")
+
+    print("\nSaved 'adversarial_image.png' and 'adversarial_noise.png' to your workspace!")
