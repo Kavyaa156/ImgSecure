@@ -6,3 +6,5 @@ __pycache__/
 prediction_*.jpg
 prediction_*.png
 test_images/
+adversarial_image.png
+adversarial_noise.png
