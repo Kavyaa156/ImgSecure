@@ -33,8 +33,8 @@ mean = torch.tensor(m).reshape(1, 3, 1, 1).to(device)
 std = torch.tensor(sd).reshape(1, 3, 1, 1).to(device)
 
 
-epsilon = 0.05
-num_steps = 10
+epsilon = 0.02
+num_steps = 20
 alpha = 2 * (epsilon / num_steps)
 
 
