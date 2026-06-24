@@ -21,6 +21,7 @@ ex_image = Image.open(requests.get(uri, stream=True).raw)
 img_arr = asarray(ex_image)
 img_tensor = torch.tensor(img_arr, dtype=torch.float).permute(2, 0, 1)
 image = (torch.unsqueeze(img_tensor, 0)) / 255.0
+image = image.to(device)
 
 copy = image.clone().detach().to(device).requires_grad_(True)
 
@@ -52,7 +53,7 @@ for step in range(num_steps):
     loss.backward()
 
     with torch.no_grad():
-        copy.add_(alpha * copy.grad.sign())
+        copy.data.add_(alpha * copy.grad.sign())
 
         displacement = copy - image
         displacement.clamp_(-epsilon, epsilon)
