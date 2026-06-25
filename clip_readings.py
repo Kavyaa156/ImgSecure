@@ -7,7 +7,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
 url = "https://images.cocodataset.org/test-stuff2017/000000028352.jpg"
-raw_image = Image.open(requests.get(url, stream=True).raw)
+raw_image = Image.open(requests.get(url, stream=True, verify=False).raw)
 
 image = preprocess(raw_image).unsqueeze(0).to(device)
 
