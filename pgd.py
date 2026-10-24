@@ -22,8 +22,8 @@ image_l2norm = torch.nn.functional.normalize(image_features, p=2, dim=1)
 copy = image.clone().to(device).requires_grad_(True)
 
 #Define your attack hyperparameters: maximum perturbation budget ($\epsilon$), total iteration steps, and step size ($\alpha$).
-epsilon = 0.02
-num_steps = 20
+epsilon = 0.03
+num_steps = 30
 alpha = 2 * (epsilon / num_steps)
 
 #Iterative pgd loop
