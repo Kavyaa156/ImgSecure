@@ -1,59 +1,50 @@
 import torch
 import torch.nn as nn
 import numpy as np
+import clip
 from PIL import Image
 import requests
-from numpy import asarray
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f'Using {device} for inference..')
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model, preprocess = clip.load("ViT-B/32", device=device)
 
-resnet50 = torch.hub.load(
-    'NVIDIA/DeepLearningExamples:torchhub', 'nvidia_resnet50', pretrained=True)
-utils = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub',
-                       'nvidia_convnets_processing_utils')
+url = "https://images.cocodataset.org/test-stuff2017/000000028352.jpg"
+raw_image = Image.open(requests.get(url, stream=True, verify=False).raw)
 
-resnet50.eval().to(device)
+image = preprocess(raw_image).unsqueeze(0).to(device)
 
-uri = 'http://images.cocodataset.org/test-stuff2017/000000028117.jpg'
-ex_image = Image.open(requests.get(uri, stream=True).raw)
+# Forward pass - extract latent embeddings
+image_features = model.encode_image(image).detach()
 
-img_arr = asarray(ex_image)
-img_tensor = torch.tensor(img_arr, dtype=torch.float).permute(2, 0, 1)
-image = (torch.unsqueeze(img_tensor, 0)) / 255.0
-image = image.to(device)
+# L2 Normalization
+image_l2norm = torch.nn.functional.normalize(image_features, p=2, dim=1)
 
-copy = image.clone().detach().to(device).requires_grad_(True)
+copy = image.clone().to(device).requires_grad_(True)
 
-# ImageNet normalization values
-m = [0.485, 0.456, 0.406]
-sd = [0.229, 0.224, 0.225]
-
-mean = torch.tensor(m).reshape(1, 3, 1, 1).to(device)
-std = torch.tensor(sd).reshape(1, 3, 1, 1).to(device)
-
-
+#Define your attack hyperparameters: maximum perturbation budget ($\epsilon$), total iteration steps, and step size ($\alpha$).
 epsilon = 0.02
 num_steps = 20
 alpha = 2 * (epsilon / num_steps)
 
-
+#Iterative pgd loop
 for step in range(num_steps):
     if copy.grad is not None:
         copy.grad.zero_()
 
-    norm_img = (copy - mean) / std
+#forward pass
+    image_features = model.encode_image(copy)
 
-    img = resnet50(norm_img)
-    true_label = torch.tensor([294]).long().to(device)
+#L2 normalization
+    copy_l2norm = torch.nn.functional.normalize(image_features, p=2, dim=1)
 
-    loss = nn.CrossEntropyLoss()
-    loss = loss(img, true_label)
+# Cosine similarity loss
+    cos = torch.nn.functional.cosine_similarity(copy_l2norm, image_l2norm, dim=1)
+    loss = cos.mean()
 
     loss.backward()
 
     with torch.no_grad():
-        copy.data.add_(alpha * copy.grad.sign())
+        copy.data.sub_(alpha * copy.grad.sign())
 
         displacement = copy - image
         displacement.clamp_(-epsilon, epsilon)
@@ -61,32 +52,29 @@ for step in range(num_steps):
         copy.copy_(image + displacement)
         copy.clamp_(0, 1)
 
+#Final evaluation report
 with torch.no_grad():
-    # 1. Get the model's new prediction on the perturbed image
-    final_norm = (copy - mean) / std
-    outputs = resnet50(final_norm)
-    _, predicted_idx = torch.max(outputs, 1)
+    final_features = model.encode_image(copy)
+    final_l2norm = torch.nn.functional.normalize(final_features, p=2, dim=1)
+    final_similarity = torch.nn.functional.cosine_similarity(image_l2norm, final_l2norm, dim=1)
 
-    print(f"\nTarget Class Index (True Label): {true_label.item()}")
-    print(f"Model's Predicted Class Index After PGD: {predicted_idx.item()}")
+    print(f"\n--- PGD Optimization Complete ---")
+    print(f"Initial Cosine Similarity: 1.0000")
+    print(f"Final Cosine Similarity:   {final_similarity.item():.4f}")
 
-    if true_label.item() == predicted_idx.item():
-        print("❌ The attack failed to fool the model. Try increasing epsilon or num_steps.")
+    if final_similarity.item() < 0.5:
+        print("Success! Semantic drift achieved")
     else:
-        print("🎉 Success! The model was fooled by the adversarial image.")
+        print("Similarity remains high. Consider increasing epsilon or num_steps")
 
-    # 2. Convert tensors back to PIL Images to save them
-    # Remove batch dimension and move to CPU/NumPy
-    adv_np = copy.squeeze(0).cpu().permute(1, 2, 0).numpy()
-    adv_np = (adv_np * 255).astype(np.uint8)
-    adv_img = Image.fromarray(adv_np)
-    adv_img.save("adversarial_image.png")
+    #save perturbed adversarial image
+    adv_np = copy.squeeze(0).cpu().permute(1,2,0).numpy()
+    adv_np = np.clip(adv_np * 255, 0, 255).astype(np.uint8)
+    Image.fromarray(adv_np).save("adversarial_imgsecure.png")
 
-    # 3. Amplify and save the noise pattern itself so we can see it
-    noise_np = (displacement.squeeze(0).cpu().permute(
-        1, 2, 0).numpy() + epsilon) / (2 * epsilon)
-    noise_np = (noise_np * 255).astype(np.uint8)
-    noise_img = Image.fromarray(noise_np)
-    noise_img.save("adversarial_noise.png")
-
-    print("\nSaved 'adversarial_image.png' and 'adversarial_noise.png' to your workspace!")
+    #save amplified noise map for visualization
+    noise_np = (displacement.squeeze(0).cpu().permute(1, 2, 0).numpy() + epsilon) / (2 * epsilon)
+    noise_np = np.clip(noise_np * 255, 0, 255).astype(np.uint8)
+    Image.fromarray(noise_np).save("adversarial_noise_map.png")
+    
+    print("Saved 'adversarial_imgsecure.png' and 'adversarial_noise_map.png' to workspace!")
