@@ -1,4 +1,3 @@
-```markdown
 # ImgSecure 🔍
 
 **AI-Powered Image Forensics & Adversarial Immunization Toolkit**
@@ -64,8 +63,8 @@ IMGSECURE/
 Clone the repository and install the required dependencies:
 
 ```bash
-git clone [https://github.com/Kavyaa156/imgsecure.git](https://github.com/Kavyaa156/imgsecure.git)
-cd imgsecure
+git clone [https://github.com/Kavyaa156/ImgSecure.git](https://github.com/Kavyaa156/ImgSecure.git)
+cd ImgSecure
 python -m venv .venv
 source .venv/bin/activate       # Windows: .venv\Scripts\activate
 pip install torch torchvision ftfy regex tqdm scikit-image pillow opencv-python numpy matplotlib
@@ -98,9 +97,11 @@ python encoder_attack.py
 
 ## 🧰 Tech Stack
 
-* **Core & Deep Learning:** Python, PyTorch, torchvision, OpenAI CLIP (ViT-B/32)
-* **Image Processing & Quality Metrics:** OpenCV, Pillow, NumPy, Scikit-Image (`skimage`)
-* **Visualization:** Matplotlib
+* **Deep Learning & Neural Networks:** PyTorch, torchvision, OpenAI CLIP (`ViT-B/32`), PyTorch Autograd & Computational Graphs
+* **Computer Vision & Image Processing:** OpenCV (`cv2`), Pillow (`PIL`), NumPy, Scikit-Image (`skimage` for PSNR/SSIM structural metrics)
+* **Adversarial Optimization & Security:** Projected Gradient Descent (PGD), Fast Gradient Sign Method (FGSM), L₂-norm clipping, Epsilon-ball tensor projections
+* **Image Forensics (Phase 0):** Error Level Analysis (ELA), EXIF metadata inspection, high-frequency spatial noise filtering via Gaussian blurring
+* **Development Environment & Utilities:** Python, Requests, Matplotlib, Git / GitHub
 
 ---
 
@@ -111,7 +112,3 @@ python encoder_attack.py
 Building at the intersection of computer vision, deep learning security, and digital privacy.
 
 [GitHub](https://github.com/Kavyaa156)
-
-```
-
-```
