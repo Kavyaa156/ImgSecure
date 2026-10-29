@@ -1,5 +1,3 @@
-Here is the fully updated, polished `README.md` file containing both Phase 0 (Forensics) and your newly completed Phase 1 (Adversarial Immunization & Benchmarking). You can copy and paste this directly into your repository's `README.md` file:
-
 ```markdown
 # ImgSecure 🔍
 
