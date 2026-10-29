@@ -1,87 +1,119 @@
+Here is the fully updated, polished `README.md` file containing both Phase 0 (Forensics) and your newly completed Phase 1 (Adversarial Immunization & Benchmarking). You can copy and paste this directly into your repository's `README.md` file:
+
+```markdown
 # ImgSecure 🔍
 
-**AI-Powered Image Forensics Tool — Phase 0**
+**AI-Powered Image Forensics & Adversarial Immunization Toolkit**
 
-Phase 0 of ImgSecure analyzes images for signs of tampering, manipulation, or AI generation using three forensic techniques: Error Level Analysis, Metadata Inspection, and Noise Pattern Analysis.
-
----
-
-## Why This Exists
-
-Non-consensual image manipulation is a growing threat — deepfakes, AI-generated faces, and edited photos cause real harm to real people. ImgSecure is a step toward building tools that can detect when an image has been tampered with, before that harm spreads.
-
-This is Phase 0 of a larger digital safety system
+ImgSecure is a dual-phase digital safety architecture. **Phase 0** provides forensic tools to detect image tampering, metadata manipulation, and generative AI artifacts. **Phase 1** implements active adversarial immunization, utilizing gradient-based attacks (FGSM and PGD) on multimodal vision encoders to protect digital media from unauthorized AI scrapers and deepfake manipulation.
 
 ---
 
-## What It Does
+## 🛡️ Why This Exists
 
-### 1. Error Level Analysis (ELA)
-
-Re-compresses the image at a known JPEG quality and computes the pixel-wise difference from the original. Tampered regions — which were compressed at a different error level — show up significantly brighter in the output.
-
-### 2. Metadata Inspection
-
-Extracts raw EXIF data and maps tag IDs to human-readable names. Red flags include editing software signatures on a photo claimed to be original, mismatched timestamps, or missing camera data entirely.
-
-### 3. Noise Pattern Analysis
-
-Applies Gaussian blur to isolate the high-frequency noise layer, then amplifies the difference. Authentic images have spatially consistent noise. Spliced, edited, or AI-generated regions break that consistency and appear as anomalies.
+Non-consensual image manipulation, unauthorized web scraping, and deepfakes pose critical threats to digital privacy and creative safety. ImgSecure bridges the gap between passive forensic detection and active defensive immunization—providing developers and creators the tools to audit and secure digital media.
 
 ---
 
-## Project Structure
+## 🛠️ Phase 0: Image Forensics Suite
+
+Phase 0 analyzes images for tampering and AI generation using three core computer vision techniques:
+
+1. **Error Level Analysis (ELA):** Re-compresses images at known JPEG qualities to expose pixel-wise compression discrepancies. Tampered regions show up as high-error anomalies.
+2. **Metadata Inspection:** Extracts raw EXIF data, surfacing hidden editing signatures, mismatched timestamps, or missing sensor tags.
+3. **Noise Pattern Analysis:** Isolates high-frequency noise layers via Gaussian smoothing to reveal spatial inconsistencies caused by splicing or generative AI insertion.
+
+---
+
+## ⚡ Phase 1: Adversarial Immunization & Encoder Attacks
+
+Phase 1 explores active defense by formulating **Latent Space Encoder Attacks** inspired by PhotoGuard. Instead of attacking a standard image classifier, ImgSecure targets the multimodal **CLIP (ViT-B/32)** vision-language encoder to induce semantic drift, breaking automated feature extraction while keeping perturbations visually imperceptible.
+
+### Comparative Benchmark: FGSM vs. PGD on CLIP (ViT-B/32)
+Both attacks were executed under an identical perturbation budget ($\epsilon = 0.03$) on the same test image:
+
+| Attack Method | Final Cosine Similarity | PSNR (dB) | SSIM | Status / Outcome |
+| :--- | :--- | :--- | :--- | :--- |
+| **FGSM** *(Single-Step)* | `0.8093` | `37.20` | `0.9925` | Moderate drift; single-step noise absorbed by transformer patch attention. |
+| **PGD** *(Iterative, 30 Steps)* | `0.4980` | `38.14` | `0.9938` | **Success!** Robust semantic drift achieved below the $0.5$ threshold. |
+
+* **Key Engineering Insight:** Iterative multi-step optimization (**PGD**) successfully warps Vision Transformer self-attention maps and collapses embedding similarity, whereas single-step gradient jumps (**FGSM**) lack the precision required for complex multimodal spaces. Both methods maintain an **SSIM > 0.99**, ensuring absolute visual stealth.
+
+---
+
+## 📂 Project Structure
+
 
 ```
+
 IMGSECURE/
 ├── modules/
-│   ├── ela.py          # Error Level Analysis
-│   ├── metadata.py     # EXIF metadata extraction
-│   └── noise.py        # Noise pattern analysis
-├── output/
-│   ├── ela_edited_result.jpeg
-│   └── noise_result.jpeg
-├── test_images/        # Sample images for testing
-├── analyze.py          # CLI entry point
+│   ├── ela.py              # Error Level Analysis (Phase 0)
+│   ├── metadata.py         # EXIF metadata extraction (Phase 0)
+│   └── noise.py            # Noise pattern analysis (Phase 0)
+├── output/                 # Generated forensic and adversarial artifacts
+├── test_images/            # Sample images for testing
+├── analyze.py              # CLI entry point for forensics
+├── encoder_attack.py       # PGD & FGSM CLIP encoder immunization pipeline
 └── README.md
+
 ```
 
 ---
 
-## Setup
+## 🚀 Setup & Installation
+
+Clone the repository and install the required dependencies:
 
 ```bash
-git clone https://github.com/Kavyaa156/imgsecure.git
+git clone [https://github.com/Kavyaa156/imgsecure.git](https://github.com/Kavyaa156/imgsecure.git)
 cd imgsecure
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install pillow opencv-python numpy matplotlib
+source .venv/bin/activate       # Windows: .venv\Scripts\activate
+pip install torch torchvision ftfy regex tqdm scikit-image pillow opencv-python numpy matplotlib
+
 ```
+
+*(Note: Ensure you install OpenAI's CLIP package directly from GitHub: `pip install git+https://github.com/openai/CLIP.git`)*
 
 ---
 
-## Usage
+## 💻 Usage
+
+### Run Forensic Analysis (Phase 0)
 
 ```bash
 python analyze.py test_images/your_image.jpeg
+
 ```
 
-Outputs are saved to the `output/` folder. Metadata is printed to the terminal.
+### Run Adversarial Encoder Immunization Pipeline (Phase 1)
+
+```bash
+python encoder_attack.py
+
+```
+
+*(Outputs protected adversarial images and amplified noise maps to your workspace).*
 
 ---
 
-## Stack
+## 🧰 Tech Stack
 
-- Python 3.11
-- Pillow
-- OpenCV
-- NumPy
-- Matplotlib
+* **Core & Deep Learning:** Python, PyTorch, torchvision, OpenAI CLIP (ViT-B/32)
+* **Image Processing & Quality Metrics:** OpenCV, Pillow, NumPy, Scikit-Image (`skimage`)
+* **Visualization:** Matplotlib
 
 ---
 
 ## Author
 
-**Kavyaa** — final year B.E AI & Data Science  
-Building at the intersection of computer vision and digital safety.  
+**Kavyaa** — Final-year B.E. Artificial Intelligence & Data Science
+
+Building at the intersection of computer vision, deep learning security, and digital privacy.
+
 [GitHub](https://github.com/Kavyaa156)
+
+```
+
+```
